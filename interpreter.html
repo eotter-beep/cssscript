@@ -6,8 +6,8 @@
   <style>
     /* Optional default CSSScript rules (can be overridden by external .css) */
     :root {
-      --text: "Hello World";
-      --title: "CSSScript Demo";
+      --text: Hello World;
+      --title: CSSScript Demo;
     }
   </style>
 </head>
@@ -42,9 +42,13 @@
         return str.replace(/var\((--[a-zA-Z0-9-_]+)\)/g, (_, v) => vars[v] || "");
       }
 
-      // Helper: strip quotes around CSS content
+      // Helper: strip quotes only if present
       function stripQuotes(str) {
-        return str.replace(/^["'](.*)["']$/, "$1");
+        if ((str.startsWith('"') && str.endsWith('"')) ||
+            (str.startsWith("'") && str.endsWith("'"))) {
+          return str.slice(1, -1);
+        }
+        return str;
       }
 
       // Process CSSScript rules
@@ -54,8 +58,8 @@
         // Handle para
         if (rule.selectorText === "para" && rule.style.content) {
           const p = document.createElement("p");
-          let content = stripQuotes(rule.style.content);
-          content = resolveVars(content);
+          let content = resolveVars(rule.style.content);
+          content = stripQuotes(content);
           p.textContent = content;
           document.body.appendChild(p);
         }
@@ -63,8 +67,8 @@
         // Handle header
         if (rule.selectorText === "header" && rule.style.content) {
           const h = document.createElement("h1");
-          let content = stripQuotes(rule.style.content);
-          content = resolveVars(content);
+          let content = resolveVars(rule.style.content);
+          content = stripQuotes(content);
           h.textContent = content;
           document.body.appendChild(h);
         }
