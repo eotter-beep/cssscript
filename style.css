@@ -1,0 +1,12 @@
+:root {
+  --title: "My First CSSScript Page";
+  --text: "This is generated entirely from CSS!";
+}
+
+header {
+  content: var(--title);
+}
+
+para {
+  content: var(--text);
+}
