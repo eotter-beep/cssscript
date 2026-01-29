@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>CSSScript v1 External .css Demo</title>
+  <style>
+    /* Optional default CSSScript rules (can be overridden by external .css) */
+    :root {
+      --text: "Hello World";
+      --title: "CSSScript Demo";
+    }
+  </style>
+</head>
+<body>
+  <script>
+    // === CSSScript v1 runtime ===
+    async function loadCSS(url) {
+      const response = await fetch(url);
+      const cssText = await response.text();
+      const style = document.createElement('style');
+      style.textContent = cssText;
+      document.head.appendChild(style);
+      return style.sheet;
+    }
+
+    async function runCSSScript(url) {
+      const sheet = await loadCSS(url);
+      const vars = {};
+
+      // Extract CSS variables from :root
+      [...sheet.cssRules].forEach(rule => {
+        if (rule.selectorText === ":root" && rule.style) {
+          for (let i = 0; i < rule.style.length; i++) {
+            const name = rule.style[i];
+            vars[name] = rule.style.getPropertyValue(name).trim();
+          }
+        }
+      });
+
+      // Helper: resolve var(--name)
+      function resolveVars(str) {
+        return str.replace(/var\((--[a-zA-Z0-9-_]+)\)/g, (_, v) => vars[v] || "");
+      }
+
+      // Helper: strip quotes around CSS content
+      function stripQuotes(str) {
+        return str.replace(/^["'](.*)["']$/, "$1");
+      }
+
+      // Process CSSScript rules
+      [...sheet.cssRules].forEach(rule => {
+        if (!rule.style) return;
+
+        // Handle para
+        if (rule.selectorText === "para" && rule.style.content) {
+          const p = document.createElement("p");
+          let content = stripQuotes(rule.style.content);
+          content = resolveVars(content);
+          p.textContent = content;
+          document.body.appendChild(p);
+        }
+
+        // Handle header
+        if (rule.selectorText === "header" && rule.style.content) {
+          const h = document.createElement("h1");
+          let content = stripQuotes(rule.style.content);
+          content = resolveVars(content);
+          h.textContent = content;
+          document.body.appendChild(h);
+        }
+
+        // Handle tab-close
+        if (rule.style.tabClose) {
+          const url = rule.style.tabClose;
+          const a = document.createElement("a");
+          a.href = url;
+          a.target = "_blank";
+          a.click();
+          // window.close(); // only works if tab opened by JS
+        }
+      });
+    }
+
+    // Example usage: dynamically load any CSSScript file
+    runCSSScript("style.css");
+  </script>
+</body>
+</html>
